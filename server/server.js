@@ -9,9 +9,9 @@ app.use(cors());
 app.use(express.json());
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017/mern-blog")
+  .connect("mongodb://127.0.0.1/mern-blog")
   .then(() => {
-    console.log("MongoDB connected");
+    console.log("Database connected succesfully.");
   })
   .catch((err) => {
     console.log(err);
@@ -35,8 +35,8 @@ app.post("/blogs", async (req, res) => {
   res.json(newBlog);
 });
 
-app.put("/blogs/:id", async (req, res) => {
-  const blog = await Blog.findByIdAndUpdate(req.params.id, req.body, {
+app.put("/blogs/:editId", async (req, res) => {
+  const blog = await Blog.findByIdAndUpdate(req.params.editId, req.body, {
     new: true,
   });
   res.json(blog);
