@@ -1,23 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import {
-  Container,
-  TextField,
-  Button,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Typography,
-  Box,
-} from "@mui/material";
-import { Edit, Delete } from "@mui/icons-material";
 
-function App() {
+const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [editId, setEditId] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     axios
@@ -27,30 +16,32 @@ function App() {
   }, []);
 
   const addBlog = () => {
-    if (editId) {
-      axios
-        .put(`http://localhost:5000/blogs/${editId}`, { title, content })
-        .then((response) => {
-          setBlogs(
-            blogs.map((blog) => (blog._id === editId ? response.data : blog))
-          );
-          setEditId(null);
-          setTitle("");
-          setContent("");
-        })
-        .catch((error) => console.error("Error updating blog:", error));
-    } else {
-      axios
-        .post("http://localhost:5000/blogs", { title, content })
-        .then((response) => setBlogs([...blogs, response.data]))
-        .catch((error) => console.error("Error adding blog:", error));
-    }
+    axios
+      .post("http://localhost:5000/blogs", { title, content })
+      .then((response) => setBlogs([...blogs, response.data]))
+      .catch((error) => console.error("Error adding blog:", error));
   };
 
   const editBlog = (id, blogTitle, blogContent) => {
     setEditId(id);
     setTitle(blogTitle);
     setContent(blogContent);
+    setIsEditing(true);
+  };
+
+  const submitEdit = () => {
+    axios
+      .put(`http://localhost:5000/blogs/${editId}`, { title, content })
+      .then((response) => {
+        setBlogs(
+          blogs.map((blog) => (blog._id === editId ? response.data : blog))
+        );
+        setEditId(null);
+        setTitle("");
+        setContent("");
+        setIsEditing(false);
+      })
+      .catch((error) => console.error("Error updating blog:", error));
   };
 
   const deleteBlog = (id) => {
@@ -61,61 +52,40 @@ function App() {
   };
 
   return (
-    <Container>
-      <Typography variant="h3" gutterBottom>
-        CRUD Blog Application with MERN Stack
-      </Typography>
-      <TextField
-        label="Title"
-        variant="outlined"
-        fullWidth
-        margin="normal"
+    <div>
+      <h1>MERN Blog</h1>
+      <input
+        type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title"
       />
-      <TextField
-        label="Content"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        multiline
-        rows={4}
+      <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        placeholder="Content"
       />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={addBlog}
-        style={{ marginTop: "20px" }}
-      >
-        {editId ? "Update Blog" : "Add Blog"}
-      </Button>
-      <List>
+      {isEditing ? (
+        <button onClick={submitEdit}>Update</button>
+      ) : (
+        <button onClick={addBlog}>Submit</button>
+      )}
+      <ul>
         {blogs.map((blog) => (
-          <ListItem key={blog._id}>
-            <ListItemText primary={blog.title} secondary={blog.content} />
-            <Box>
-              <IconButton
-                edge="end"
-                aria-label="edit"
-                onClick={() => editBlog(blog._id, blog.title, blog.content)}
-              >
-                <Edit />
-              </IconButton>
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={() => deleteBlog(blog._id)}
-              >
-                <Delete />
-              </IconButton>
-            </Box>
-          </ListItem>
+          <li key={blog._id}>
+            <h2>{blog.title}</h2>
+            <p>{blog.content}</p>
+            <button
+              onClick={() => editBlog(blog._id, blog.title, blog.content)}
+            >
+              Edit
+            </button>
+            <button onClick={() => deleteBlog(blog._id)}>Delete</button>
+          </li>
         ))}
-      </List>
-    </Container>
+      </ul>
+    </div>
   );
-}
+};
 
 export default App;
